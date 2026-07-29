@@ -1,0 +1,1512 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#161e26" />
+  <title>셀 주간 업무보고</title>
+  <style>
+    :root {
+      --ink: #17212a;
+      --muted: #65727d;
+      --paper: #f4f0e8;
+      --panel: #fffdf8;
+      --line: #d8d2c6;
+      --night: #17212a;
+      --lime: #c9f66f;
+      --coral: #ff765f;
+      --sky: #7fd4e8;
+      --yellow: #f6cc64;
+      --green: #2c9a72;
+      --danger: #c94a3e;
+      --shadow: 0 18px 60px rgba(23, 33, 42, .09);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html {
+      scroll-behavior: smooth;
+      background: var(--paper);
+    }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 4%, rgba(127, 212, 232, .23), transparent 24rem),
+        radial-gradient(circle at 98% 28%, rgba(201, 246, 111, .18), transparent 26rem),
+        var(--paper);
+      font-family: Pretendard, "Apple SD Gothic Neo", "Noto Sans KR", system-ui, sans-serif;
+      letter-spacing: -.025em;
+    }
+
+    button, a { font: inherit; }
+
+    button {
+      color: inherit;
+    }
+
+    ::selection {
+      color: var(--night);
+      background: var(--lime);
+    }
+
+    .page-shell {
+      width: min(1440px, calc(100% - 40px));
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: 214px minmax(0, 1fr);
+      gap: 18px;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 20px;
+      height: calc(100vh - 40px);
+      min-height: 650px;
+      padding: 24px 20px;
+      border-radius: 28px;
+      color: #f7f6f1;
+      background: var(--night);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow);
+    }
+
+    .sidebar::after {
+      content: "";
+      position: absolute;
+      right: -58px;
+      bottom: -48px;
+      width: 170px;
+      height: 170px;
+      border: 34px solid var(--lime);
+      border-radius: 50%;
+      opacity: .92;
+    }
+
+    .brand {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      font-weight: 800;
+      letter-spacing: -.04em;
+    }
+
+    .brand-mark {
+      display: grid;
+      grid-template-columns: repeat(2, 8px);
+      gap: 3px;
+    }
+
+    .brand-mark i {
+      display: block;
+      width: 8px;
+      height: 8px;
+      border-radius: 2px;
+      background: var(--lime);
+    }
+
+    .brand-mark i:nth-child(2) { background: var(--sky); }
+    .brand-mark i:nth-child(3) { background: var(--coral); }
+    .brand-mark i:nth-child(4) { background: #fff; }
+
+    .issue-label {
+      position: relative;
+      z-index: 1;
+      margin-top: 20px;
+      color: #aeb8be;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    .issue-label strong {
+      display: block;
+      margin-top: 4px;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .side-nav {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      gap: 7px;
+      margin-top: 42px;
+    }
+
+    .side-nav a {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 11px;
+      border-radius: 12px;
+      color: #aeb8be;
+      font-size: 13px;
+      text-decoration: none;
+      transition: .2s ease;
+    }
+
+    .side-nav a:hover,
+    .side-nav a:focus-visible {
+      color: #fff;
+      background: rgba(255, 255, 255, .08);
+      outline: none;
+    }
+
+    .side-nav span {
+      width: 22px;
+      color: var(--lime);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .sidebar-note {
+      position: relative;
+      z-index: 1;
+      margin-top: auto;
+      padding: 14px;
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, .06);
+      backdrop-filter: blur(10px);
+    }
+
+    .sidebar-note .eyebrow { color: var(--lime); }
+    .sidebar-note p {
+      margin: 8px 0 0;
+      color: #d7dddf;
+      font-size: 12px;
+      line-height: 1.55;
+    }
+
+    main {
+      min-width: 0;
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      min-height: 54px;
+      margin-bottom: 18px;
+      padding: 8px 10px 8px 18px;
+      border: 1px solid rgba(23, 33, 42, .08);
+      border-radius: 18px;
+      background: rgba(255, 253, 248, .78);
+      backdrop-filter: blur(14px);
+    }
+
+    .toolbar-status {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .live-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 0 5px rgba(44, 154, 114, .12);
+    }
+
+    .toolbar-actions {
+      display: flex;
+      gap: 7px;
+    }
+
+    .action-button {
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      padding: 8px 12px;
+      color: var(--ink);
+      background: #fffdf8;
+      font-size: 12px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: transform .15s ease, background .15s ease;
+    }
+
+    .action-button:hover { transform: translateY(-1px); }
+    .action-button.primary {
+      border-color: var(--night);
+      color: #fff;
+      background: var(--night);
+    }
+
+    .hero {
+      position: relative;
+      padding: 40px 42px 32px;
+      border-radius: 32px;
+      color: #fff;
+      background: var(--night);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: -92px;
+      right: 8%;
+      width: 220px;
+      height: 220px;
+      border: 48px solid rgba(127, 212, 232, .75);
+      border-radius: 50%;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -40px;
+      bottom: -82px;
+      width: 270px;
+      height: 150px;
+      border-radius: 90px;
+      background: var(--lime);
+      transform: rotate(-13deg);
+    }
+
+    .hero-grid {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: minmax(0, 1.25fr) minmax(320px, .75fr);
+      gap: 38px;
+      align-items: end;
+    }
+
+    .eyebrow {
+      margin: 0;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+
+    .hero .eyebrow { color: var(--sky); }
+
+    .hero h1 {
+      max-width: 700px;
+      margin: 14px 0 14px;
+      font-size: clamp(42px, 6vw, 79px);
+      line-height: .98;
+      letter-spacing: -.075em;
+    }
+
+    .hero h1 em {
+      color: var(--lime);
+      font-style: normal;
+    }
+
+    .hero-copy {
+      max-width: 630px;
+      margin: 0;
+      color: #cbd3d7;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    .hero-side {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .hero-metric {
+      min-height: 105px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, .16);
+      border-radius: 18px;
+      background: rgba(255, 255, 255, .08);
+      backdrop-filter: blur(9px);
+    }
+
+    .hero-metric b {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 29px;
+      letter-spacing: -.055em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .hero-metric span {
+      color: #bec7cb;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .section {
+      scroll-margin-top: 20px;
+      margin-top: 18px;
+      padding: 30px;
+      border: 1px solid rgba(23, 33, 42, .08);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 248, .88);
+      box-shadow: 0 12px 42px rgba(23, 33, 42, .05);
+    }
+
+    .section-heading {
+      display: flex;
+      justify-content: space-between;
+      align-items: end;
+      gap: 18px;
+      margin-bottom: 22px;
+    }
+
+    .section-heading h2 {
+      margin: 6px 0 0;
+      font-size: clamp(25px, 3vw, 38px);
+      line-height: 1.08;
+      letter-spacing: -.06em;
+    }
+
+    .section-caption {
+      max-width: 420px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.6;
+      text-align: right;
+    }
+
+    .operating-model {
+      display: grid;
+      grid-template-columns: minmax(0, 1.35fr) minmax(270px, .65fr);
+      gap: 14px;
+    }
+
+    .model-map {
+      position: relative;
+      min-height: 370px;
+      padding: 22px;
+      border-radius: 22px;
+      background:
+        linear-gradient(rgba(23, 33, 42, .035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 33, 42, .035) 1px, transparent 1px),
+        #f8f5ee;
+      background-size: 24px 24px;
+      overflow: hidden;
+    }
+
+    .cells-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .map-cell {
+      position: relative;
+      min-height: 142px;
+      padding: 16px;
+      border: 1px solid var(--ink);
+      border-radius: 18px;
+      background: var(--panel);
+      box-shadow: 5px 5px 0 rgba(23, 33, 42, .1);
+    }
+
+    .map-cell:nth-child(2) { transform: translateY(14px); }
+
+    .map-cell .cell-code {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: .12em;
+    }
+
+    .map-cell h3 {
+      margin: 19px 0 4px;
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .map-cell p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .map-cell::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -57px;
+      width: 1px;
+      height: 56px;
+      background: var(--ink);
+    }
+
+    .ops-spine {
+      position: absolute;
+      left: 22px;
+      right: 22px;
+      bottom: 48px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      min-height: 76px;
+      padding: 17px 19px;
+      border-radius: 18px;
+      color: #fff;
+      background: var(--night);
+      box-shadow: 0 12px 30px rgba(23, 33, 42, .18);
+    }
+
+    .ops-spine strong {
+      color: var(--lime);
+      font-size: 15px;
+    }
+
+    .ops-spine span {
+      color: #bdc7cb;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .spine-tags {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 6px;
+    }
+
+    .spine-tags i {
+      padding: 6px 8px;
+      border: 1px solid rgba(255, 255, 255, .17);
+      border-radius: 999px;
+      color: #fff;
+      font-size: 10px;
+      font-style: normal;
+      white-space: nowrap;
+    }
+
+    .principles {
+      display: grid;
+      gap: 8px;
+    }
+
+    .principle {
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: var(--panel);
+    }
+
+    .principle-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 11px;
+    }
+
+    .principle-number {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      color: var(--night);
+      background: var(--lime);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .principle:nth-child(2) .principle-number { background: var(--sky); }
+    .principle:nth-child(3) .principle-number { background: var(--coral); }
+
+    .principle strong {
+      font-size: 14px;
+    }
+
+    .principle p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .filter-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 16px;
+    }
+
+    .filter-button {
+      padding: 8px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--muted);
+      background: transparent;
+      font-size: 11px;
+      font-weight: 750;
+      cursor: pointer;
+    }
+
+    .filter-button.active {
+      border-color: var(--night);
+      color: #fff;
+      background: var(--night);
+    }
+
+    .cell-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .cell-card {
+      position: relative;
+      min-width: 0;
+      padding: 19px;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--panel);
+      transition: transform .2s ease, box-shadow .2s ease, opacity .2s ease;
+    }
+
+    .cell-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 30px rgba(23, 33, 42, .08);
+    }
+
+    .cell-card.is-hidden { display: none; }
+
+    .cell-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cell-label {
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: .12em;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 8px;
+      border-radius: 999px;
+      color: var(--green);
+      background: rgba(44, 154, 114, .1);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .status::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+
+    .status.watch {
+      color: var(--danger);
+      background: rgba(201, 74, 62, .1);
+    }
+
+    .cell-card h3 {
+      min-height: 50px;
+      margin: 20px 0 4px;
+      font-size: 21px;
+      line-height: 1.18;
+      letter-spacing: -.045em;
+    }
+
+    .cell-owner {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .progress-head {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 23px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    .progress-head strong {
+      color: var(--ink);
+      font-size: 12px;
+    }
+
+    .progress-track {
+      height: 7px;
+      margin-top: 8px;
+      border-radius: 999px;
+      background: #e8e4db;
+      overflow: hidden;
+    }
+
+    .progress-track span {
+      display: block;
+      width: var(--progress);
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+    }
+
+    .cell-facts {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 17px;
+    }
+
+    .fact {
+      padding: 10px;
+      border-radius: 12px;
+      background: #f3efe7;
+    }
+
+    .fact span {
+      display: block;
+      margin-bottom: 4px;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .fact strong {
+      display: block;
+      overflow: hidden;
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cell-next {
+      margin-top: 15px;
+      padding-top: 14px;
+      border-top: 1px solid var(--line);
+    }
+
+    .cell-next span {
+      display: block;
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 750;
+      letter-spacing: .07em;
+    }
+
+    .cell-next p {
+      margin: 6px 0 0;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+
+    .operations-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.2fr) minmax(290px, .8fr);
+      gap: 14px;
+    }
+
+    .responsibility-list {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .responsibility-row {
+      display: grid;
+      grid-template-columns: 112px minmax(0, 1.2fr) minmax(120px, .65fr);
+      gap: 15px;
+      align-items: center;
+      min-height: 91px;
+      padding: 15px 17px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .responsibility-row:last-child { border-bottom: 0; }
+
+    .scope-badge {
+      width: fit-content;
+      padding: 6px 8px;
+      border-radius: 8px;
+      color: var(--night);
+      background: var(--lime);
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .responsibility-row:nth-child(2) .scope-badge { background: var(--sky); }
+    .responsibility-row:nth-child(3) .scope-badge { background: var(--coral); }
+
+    .responsibility-row h3 {
+      margin: 0 0 5px;
+      font-size: 14px;
+    }
+
+    .responsibility-row p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .owner-block {
+      padding-left: 14px;
+      border-left: 1px solid var(--line);
+    }
+
+    .owner-block span {
+      display: block;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .owner-block strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    .ops-score {
+      padding: 23px;
+      border-radius: 20px;
+      color: #fff;
+      background: var(--night);
+    }
+
+    .ops-score .eyebrow { color: var(--sky); }
+
+    .score-number {
+      margin: 18px 0 4px;
+      color: var(--lime);
+      font-size: 64px;
+      font-weight: 850;
+      line-height: 1;
+      letter-spacing: -.07em;
+    }
+
+    .score-number small {
+      color: #fff;
+      font-size: 17px;
+      letter-spacing: -.03em;
+    }
+
+    .score-copy {
+      margin: 0 0 22px;
+      color: #aeb9be;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+
+    .score-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .score-list li {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, .13);
+      color: #c5cdd1;
+      font-size: 10px;
+    }
+
+    .score-list strong {
+      color: #fff;
+      font-size: 11px;
+    }
+
+    .decision-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 260px;
+      gap: 14px;
+    }
+
+    .decision-table {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .decision-row {
+      display: grid;
+      grid-template-columns: 54px minmax(0, 1.5fr) minmax(140px, .65fr) 76px;
+      gap: 13px;
+      align-items: center;
+      min-height: 79px;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+    }
+
+    .decision-row:last-child { border-bottom: 0; }
+
+    .decision-id {
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 850;
+      letter-spacing: .08em;
+    }
+
+    .decision-row h3 {
+      margin: 0 0 5px;
+      font-size: 13px;
+    }
+
+    .decision-row p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .recommendation {
+      padding-left: 13px;
+      border-left: 1px solid var(--line);
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .due {
+      text-align: right;
+    }
+
+    .due span {
+      display: block;
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .due strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 11px;
+    }
+
+    .decision-note {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 253px;
+      padding: 21px;
+      border-radius: 20px;
+      background: var(--yellow);
+    }
+
+    .decision-note h3 {
+      margin: 15px 0 8px;
+      font-size: 24px;
+      line-height: 1.08;
+      letter-spacing: -.055em;
+    }
+
+    .decision-note p {
+      margin: 0;
+      color: rgba(23, 33, 42, .7);
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .decision-note footer {
+      padding-top: 18px;
+      border-top: 1px solid rgba(23, 33, 42, .22);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .week-strip {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .day-card {
+      min-height: 142px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: var(--panel);
+    }
+
+    .day-card.today {
+      color: #fff;
+      background: var(--night);
+      border-color: var(--night);
+    }
+
+    .day-label {
+      display: flex;
+      justify-content: space-between;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .today .day-label { color: var(--sky); }
+
+    .day-card strong {
+      display: block;
+      margin-top: 26px;
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .day-card p {
+      margin: 7px 0 0;
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.45;
+    }
+
+    .today p { color: #b8c3c8; }
+
+    .report-footer {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      padding: 24px 6px 12px;
+      color: var(--muted);
+      font-size: 10px;
+    }
+
+    [contenteditable="true"] {
+      border-radius: 4px;
+      outline: 2px dashed rgba(201, 74, 62, .45);
+      outline-offset: 3px;
+      background: rgba(255, 118, 95, .08);
+    }
+
+    .editing-hint {
+      display: none;
+      color: var(--danger);
+      font-weight: 750;
+    }
+
+    body.is-editing .editing-hint { display: inline; }
+
+    @media (max-width: 1120px) {
+      .page-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: relative;
+        top: 0;
+        height: auto;
+        min-height: 0;
+        flex-direction: row;
+        align-items: center;
+        gap: 22px;
+      }
+
+      .issue-label,
+      .sidebar-note { display: none; }
+
+      .side-nav {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 0 0 auto;
+      }
+
+      .side-nav a {
+        padding: 8px;
+      }
+
+      .side-nav span { display: none; }
+    }
+
+    @media (max-width: 850px) {
+      .hero-grid,
+      .operating-model,
+      .operations-grid,
+      .decision-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-side { max-width: 520px; }
+      .cell-grid { grid-template-columns: 1fr; }
+      .section-caption { display: none; }
+      .week-strip { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .day-card:last-child { grid-column: 1 / -1; }
+    }
+
+    @media (max-width: 620px) {
+      .page-shell {
+        width: min(100% - 20px, 1440px);
+        margin: 10px auto;
+      }
+
+      .sidebar {
+        padding: 17px;
+        border-radius: 20px;
+      }
+
+      .side-nav { display: none; }
+
+      .toolbar {
+        align-items: flex-start;
+        padding: 11px;
+      }
+
+      .toolbar-status { display: none; }
+      .toolbar-actions { width: 100%; }
+      .action-button { flex: 1; }
+      .hero { padding: 30px 23px 24px; }
+      .hero-grid { gap: 26px; }
+      .hero h1 { font-size: 46px; }
+      .hero-side { grid-template-columns: repeat(2, 1fr); }
+      .section { padding: 23px 17px; }
+      .cells-row { grid-template-columns: 1fr; }
+      .map-cell { min-height: 96px; }
+      .map-cell:nth-child(2) { transform: none; }
+      .map-cell::after { display: none; }
+      .model-map { padding-bottom: 147px; }
+      .ops-spine {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+      .spine-tags { justify-content: flex-start; }
+      .responsibility-row {
+        grid-template-columns: 90px 1fr;
+      }
+      .owner-block {
+        grid-column: 1 / -1;
+        padding: 10px 0 0;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+      }
+      .decision-row {
+        grid-template-columns: 45px 1fr 55px;
+      }
+      .recommendation {
+        grid-column: 2 / -1;
+        padding: 8px 0 0;
+        border-top: 1px solid var(--line);
+        border-left: 0;
+      }
+      .week-strip { grid-template-columns: 1fr; }
+      .day-card:last-child { grid-column: auto; }
+    }
+
+    @media print {
+      @page { margin: 9mm; size: A4 landscape; }
+
+      body {
+        background: #fff;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+
+      .page-shell {
+        width: 100%;
+        margin: 0;
+        display: block;
+      }
+
+      .sidebar,
+      .toolbar,
+      .filter-row,
+      .week-strip,
+      .report-footer { display: none !important; }
+
+      .hero {
+        break-after: avoid;
+        padding: 25px 28px;
+      }
+
+      .hero h1 { font-size: 45px; }
+      .hero-metric { min-height: 84px; }
+
+      .section {
+        margin-top: 10px;
+        padding: 20px;
+        break-inside: avoid;
+        box-shadow: none;
+      }
+
+      .model-map { min-height: 315px; }
+      .cell-card:hover { transform: none; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+        CELL / WEEKLY
+      </div>
+      <div class="issue-label">
+        WEEKLY WORK REPORT
+        <strong data-editable data-key="report-period">2026 W31 · 07.27—08.02</strong>
+      </div>
+      <nav class="side-nav" aria-label="리포트 목차">
+        <a href="#cells"><span>01</span>셀 현황</a>
+        <a href="#operations"><span>02</span>유지보수·전사 업무</a>
+        <a href="#decisions"><span>03</span>결정 요청</a>
+        <a href="#next"><span>04</span>다음 약속</a>
+      </nav>
+      <div class="sidebar-note">
+        <p class="eyebrow">REPORTING RULE</p>
+        <p>개인이 아닌 셀이 보고하고,<br />활동이 아닌 결과와 위험을 공유합니다.</p>
+      </div>
+    </aside>
+
+    <main>
+      <div class="toolbar">
+        <div class="toolbar-status">
+          <span class="live-dot"></span>
+          <span>셀 단위 주간 보고 · <span class="editing-hint">편집 중 — 밑줄 친 내용을 수정하세요</span><span id="savedStatus">로컬 저장 가능</span></span>
+        </div>
+        <div class="toolbar-actions">
+          <button class="action-button" id="editButton" type="button">내용 편집</button>
+          <button class="action-button primary" id="printButton" type="button">인쇄 / PDF</button>
+        </div>
+      </div>
+
+      <header class="hero">
+        <div class="hero-grid">
+          <div>
+            <p class="eyebrow">WEEKLY CELL REPORT</p>
+            <h1>이번 주 성과와,<br /><em>다음 판단.</em></h1>
+            <p class="hero-copy" data-editable data-key="hero-copy-weekly">
+              셀별 성과와 위험, 유지보수·전사 업무 현황, 리더십 결정 요청과
+              다음 보고 전까지의 약속을 한 장으로 공유합니다.
+            </p>
+          </div>
+          <div class="hero-side" aria-label="이번 주 핵심 지표">
+            <div class="hero-metric">
+              <b data-editable data-key="metric-cells">3</b>
+              <span>이번 주<br />보고 셀</span>
+            </div>
+            <div class="hero-metric">
+              <b data-editable data-key="metric-tasks">12</b>
+              <span>이번 주<br />완료 과업</span>
+            </div>
+            <div class="hero-metric">
+              <b data-editable data-key="metric-health">82%</b>
+              <span>전체 목표<br />평균 진척</span>
+            </div>
+            <div class="hero-metric">
+              <b data-editable data-key="metric-decisions">3</b>
+              <span>리더십<br />결정 요청</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="section" id="cells">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">01 · CELL PULSE</p>
+            <h2>이번 주 셀 현황</h2>
+          </div>
+          <p class="section-caption">각 셀은 목표 진척, 다음 마일스톤, 위험과 유지보수 부하만 간결하게 공유합니다.</p>
+        </div>
+
+        <div class="filter-row" role="group" aria-label="셀 상태 필터">
+          <button class="filter-button active" type="button" data-filter="all">전체 셀</button>
+          <button class="filter-button" type="button" data-filter="steady">순항</button>
+          <button class="filter-button" type="button" data-filter="watch">확인 필요</button>
+        </div>
+
+        <div class="cell-grid">
+          <article class="cell-card" data-state="steady" style="--progress: 72%; --accent: var(--lime);">
+            <div class="cell-top">
+              <span class="cell-label">CELL A · ACQUISITION</span>
+              <span class="status">순항</span>
+            </div>
+            <h3 data-editable data-key="cell-a-title">첫 방문에서 핵심가치까지<br />경로 단축</h3>
+            <p class="cell-owner" data-editable data-key="cell-a-owner">셀 리드 김하늘 · 5명</p>
+            <div class="progress-head"><span>목표 진척</span><strong>72%</strong></div>
+            <div class="progress-track"><span></span></div>
+            <div class="cell-facts">
+              <div class="fact"><span>성과 신호</span><strong data-editable data-key="cell-a-signal">완료율 +8.2%p</strong></div>
+              <div class="fact"><span>유지보수 부하</span><strong data-editable data-key="cell-a-maintenance">18% · 안정</strong></div>
+            </div>
+            <div class="cell-next">
+              <span>NEXT MILESTONE</span>
+              <p data-editable data-key="cell-a-next">8월 1일 · 신규 경로 50% 사용자 대상 점진 배포</p>
+            </div>
+          </article>
+
+          <article class="cell-card" data-state="watch" style="--progress: 48%; --accent: var(--coral);">
+            <div class="cell-top">
+              <span class="cell-label">CELL B · ONBOARDING</span>
+              <span class="status watch">확인 필요</span>
+            </div>
+            <h3 data-editable data-key="cell-b-title">가입 후 7일 내<br />첫 성공 경험 만들기</h3>
+            <p class="cell-owner" data-editable data-key="cell-b-owner">셀 리드 박지수 · 4명</p>
+            <div class="progress-head"><span>목표 진척</span><strong>48%</strong></div>
+            <div class="progress-track"><span></span></div>
+            <div class="cell-facts">
+              <div class="fact"><span>위험 신호</span><strong data-editable data-key="cell-b-signal">연동 지연 4일</strong></div>
+              <div class="fact"><span>유지보수 부하</span><strong data-editable data-key="cell-b-maintenance">31% · 주의</strong></div>
+            </div>
+            <div class="cell-next">
+              <span>NEXT MILESTONE</span>
+              <p data-editable data-key="cell-b-next">7월 31일 · 외부 연동 범위 축소 여부 리더십 결정</p>
+            </div>
+          </article>
+
+          <article class="cell-card" data-state="steady" style="--progress: 86%; --accent: var(--sky);">
+            <div class="cell-top">
+              <span class="cell-label">CELL C · AUTOMATION</span>
+              <span class="status">순항</span>
+            </div>
+            <h3 data-editable data-key="cell-c-title">반복 운영업무의<br />자동화 전환</h3>
+            <p class="cell-owner" data-editable data-key="cell-c-owner">셀 리드 이도윤 · 4명</p>
+            <div class="progress-head"><span>목표 진척</span><strong>86%</strong></div>
+            <div class="progress-track"><span></span></div>
+            <div class="cell-facts">
+              <div class="fact"><span>성과 신호</span><strong data-editable data-key="cell-c-signal">주 14시간 절감</strong></div>
+              <div class="fact"><span>유지보수 부하</span><strong data-editable data-key="cell-c-maintenance">12% · 안정</strong></div>
+            </div>
+            <div class="cell-next">
+              <span>NEXT MILESTONE</span>
+              <p data-editable data-key="cell-c-next">8월 2일 · 정산 검수 자동화 운영 이관</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="operations">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">02 · MAINTENANCE &amp; COMPANY-WIDE</p>
+            <h2>유지보수 + 전사 업무 현황</h2>
+          </div>
+          <p class="section-caption">이번 주 접수·완료·이월된 유지보수와 전사 과제의 진척, 담당자, 기한 위험을 함께 봅니다.</p>
+        </div>
+
+        <div class="operations-grid">
+          <div class="responsibility-list">
+            <article class="responsibility-row">
+              <span class="scope-badge">제품 유지보수</span>
+              <div>
+                <h3 data-editable data-key="maintenance-product-title">접수 9건 중 7건 완료</h3>
+                <p data-editable data-key="maintenance-product-copy">이월 2건 · 결제 오류 재현 1건, 관리자 권한 개선 1건</p>
+              </div>
+              <div class="owner-block">
+                <span>완료율 · 담당</span>
+                <strong data-editable data-key="maintenance-product-owner">78% · 각 미션 셀</strong>
+              </div>
+            </article>
+            <article class="responsibility-row">
+              <span class="scope-badge">공통 시스템</span>
+              <div>
+                <h3 data-editable data-key="maintenance-common-title">긴급 요청 2건 · 모두 정상화</h3>
+                <p data-editable data-key="maintenance-common-copy">반복 장애 1건 원인 분석 중 · 재발 방지 항목 8월 2일 완료 예정</p>
+              </div>
+              <div class="owner-block">
+                <span>평균 응답 · 당번</span>
+                <strong data-editable data-key="maintenance-common-owner">2.4시간 · Cell B</strong>
+              </div>
+            </article>
+            <article class="responsibility-row">
+              <span class="scope-badge">전사 과제</span>
+              <div>
+                <h3 data-editable data-key="companywide-title">전사 보안 점검 68% 진행</h3>
+                <p data-editable data-key="companywide-copy">계정 권한 정리 완료 · 외부 솔루션 접근권한 검토 6건 남음</p>
+              </div>
+              <div class="owner-block">
+                <span>마감 · 상태</span>
+                <strong data-editable data-key="companywide-owner">08.09 · 순항</strong>
+              </div>
+            </article>
+          </div>
+
+          <aside class="ops-score">
+            <p class="eyebrow">OPS HEALTH</p>
+            <div class="score-number" data-editable data-key="ops-health">84<small>/100</small></div>
+            <p class="score-copy">운영 건강도는 대응 속도, 미처리 건수, 반복 장애와 전사 과제의 기한 위험을 함께 반영합니다.</p>
+            <ul class="score-list">
+              <li><span>긴급 요청 평균 응답</span><strong data-editable data-key="ops-response">2.4시간</strong></li>
+              <li><span>반복 장애</span><strong data-editable data-key="ops-incidents">1건</strong></li>
+              <li><span>운영 부하 30% 초과 셀</span><strong data-editable data-key="ops-overload">1개</strong></li>
+              <li><span>전사 과제 기한 위험</span><strong data-editable data-key="ops-risk">없음</strong></li>
+            </ul>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="decisions">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">03 · DECISION QUEUE</p>
+            <h2>이번 주 결정이 필요한 것</h2>
+          </div>
+          <p class="section-caption">보고의 목적은 활동 증명이 아니라 막힌 판단을 빠르게 해소하는 데 있습니다.</p>
+        </div>
+
+        <div class="decision-layout">
+          <div class="decision-table">
+            <article class="decision-row">
+              <span class="decision-id">D-01</span>
+              <div>
+                <h3 data-editable data-key="decision-1-title">외부 연동 범위를 1차 버전에서 축소할지 결정</h3>
+                <p data-editable data-key="decision-1-context">전체 범위 유지 시 온보딩 셀 일정이 4일 지연될 가능성</p>
+              </div>
+              <div class="recommendation" data-editable data-key="decision-1-rec">권고 · 핵심 2개 연동만 우선 출시</div>
+              <div class="due"><span>DUE</span><strong data-editable data-key="decision-1-due">07.31</strong></div>
+            </article>
+            <article class="decision-row">
+              <span class="decision-id">D-02</span>
+              <div>
+                <h3 data-editable data-key="decision-2-title-weekly">미사용 외부 계정 12개 폐쇄 승인</h3>
+                <p data-editable data-key="decision-2-context-weekly">전사 보안 점검 결과 90일 이상 미접속 계정으로 확인</p>
+              </div>
+              <div class="recommendation" data-editable data-key="decision-2-rec-weekly">권고 · 소유자 확인 후 일괄 폐쇄</div>
+              <div class="due"><span>DUE</span><strong data-editable data-key="decision-2-due">08.01</strong></div>
+            </article>
+            <article class="decision-row">
+              <span class="decision-id">D-03</span>
+              <div>
+                <h3 data-editable data-key="decision-3-title-weekly">8월 자동화 후속 과업의 우선순위 확정</h3>
+                <p data-editable data-key="decision-3-context-weekly">정산 검수와 고객 문의 분류 중 하나를 다음 과업으로 선택</p>
+              </div>
+              <div class="recommendation" data-editable data-key="decision-3-rec-weekly">권고 · 정산 검수 자동화 우선</div>
+              <div class="due"><span>DUE</span><strong data-editable data-key="decision-3-due">08.02</strong></div>
+            </article>
+          </div>
+
+          <aside class="decision-note">
+            <div>
+              <p class="eyebrow">LEADERSHIP ASK</p>
+              <h3>막힘을<br />24시간 안에<br />해소합니다.</h3>
+              <p>이번 주 일정이나 품질이 멈추지 않도록 보고된 결정 요청은 24시간 안에 답변합니다.</p>
+            </div>
+            <footer>DECISION SLA · 24H</footer>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section" id="next">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">04 · NEXT COMMITMENTS</p>
+            <h2>다음 보고까지의 약속</h2>
+          </div>
+          <p class="section-caption">일정 나열 대신 각 셀이 다음 보고 전까지 완료할 하나의 약속을 적습니다.</p>
+        </div>
+
+        <div class="week-strip">
+          <article class="day-card">
+            <div class="day-label"><span>MON</span><span>07.29</span></div>
+            <strong data-editable data-key="monday-title-weekly">결제 오류 이월 건 해결</strong>
+            <p data-editable data-key="monday-copy-weekly">재현·수정·검증까지 완료</p>
+          </article>
+          <article class="day-card today">
+            <div class="day-label"><span>TUE</span><span>07.30</span></div>
+            <strong data-editable data-key="tuesday-title">온보딩 범위 리뷰</strong>
+            <p data-editable data-key="tuesday-copy">D-01 결정 자료 완료</p>
+          </article>
+          <article class="day-card">
+            <div class="day-label"><span>WED</span><span>07.31</span></div>
+            <strong data-editable data-key="wednesday-title">신규 경로 점진 배포</strong>
+            <p data-editable data-key="wednesday-copy">사용자 50% 대상</p>
+          </article>
+          <article class="day-card">
+            <div class="day-label"><span>THU</span><span>08.01</span></div>
+            <strong data-editable data-key="thursday-title-weekly">외부 접근권한 검토 완료</strong>
+            <p data-editable data-key="thursday-copy-weekly">남은 6개 계정 처리</p>
+          </article>
+          <article class="day-card">
+            <div class="day-label"><span>FRI</span><span>08.02</span></div>
+            <strong data-editable data-key="friday-title-weekly">정산 검수 자동화 적용</strong>
+            <p data-editable data-key="friday-copy-weekly">운영 이관 및 결과 확인</p>
+          </article>
+        </div>
+      </section>
+
+      <footer class="report-footer">
+        <span>CELL / WEEKLY · WORK REPORT</span>
+        <span>개인 업무보고가 아닌 셀의 결과와 의사결정을 기록합니다.</span>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    (() => {
+      const editButton = document.getElementById("editButton");
+      const printButton = document.getElementById("printButton");
+      const savedStatus = document.getElementById("savedStatus");
+      const editableNodes = [...document.querySelectorAll("[data-editable]")];
+      const filterButtons = [...document.querySelectorAll("[data-filter]")];
+      const cellCards = [...document.querySelectorAll(".cell-card")];
+      const storagePrefix = "cell-ops-report:";
+      let isEditing = false;
+
+      editableNodes.forEach((node) => {
+        const saved = localStorage.getItem(storagePrefix + node.dataset.key);
+        if (saved !== null) node.innerHTML = saved;
+      });
+
+      const saveAll = () => {
+        editableNodes.forEach((node) => {
+          localStorage.setItem(storagePrefix + node.dataset.key, node.innerHTML);
+        });
+        savedStatus.textContent = "방금 저장됨";
+        window.setTimeout(() => {
+          savedStatus.textContent = "로컬 저장 완료";
+        }, 1800);
+      };
+
+      editButton.addEventListener("click", () => {
+        isEditing = !isEditing;
+        document.body.classList.toggle("is-editing", isEditing);
+        editableNodes.forEach((node) => {
+          node.contentEditable = isEditing ? "true" : "false";
+        });
+        editButton.textContent = isEditing ? "저장 완료" : "내용 편집";
+
+        if (!isEditing) {
+          saveAll();
+        } else {
+          editableNodes[0]?.focus();
+        }
+      });
+
+      editableNodes.forEach((node) => {
+        node.addEventListener("keydown", (event) => {
+          if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
+            event.preventDefault();
+            saveAll();
+          }
+        });
+      });
+
+      printButton.addEventListener("click", () => {
+        if (isEditing) editButton.click();
+        window.print();
+      });
+
+      filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const filter = button.dataset.filter;
+          filterButtons.forEach((item) => item.classList.toggle("active", item === button));
+          cellCards.forEach((card) => {
+            card.classList.toggle("is-hidden", filter !== "all" && card.dataset.state !== filter);
+          });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
